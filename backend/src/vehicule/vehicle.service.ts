@@ -4,26 +4,32 @@ import { Vehicle } from './types/vehicule.type';
 
 @Injectable()
 export class VehicleService {
-  getAllVehicules(filterField?: string, sortingField?: string): Vehicle[] {
-    let filtredVehicles = [...mockVehicles];
-    if (filterField) {
-      const filter = filterField.toLowerCase();
-      filtredVehicles = filtredVehicles.filter((vehicle) =>
-        Object.values(vehicle).some((value) => {
-          if (value === null || value === undefined) return false;
+  getAllVehicules(
+    filterBy?: string,
+    filterValue?: string,
+    sortBy?: string,
+  ): Vehicle[] {
+    let filteredVehicles = [...mockVehicles];
 
-          const strValue = value.toString().toLowerCase();
-          return strValue.includes(filter);
-        }),
-      );
+    if (filterBy && filterValue) {
+      const lowerCaseFilterValue = filterValue.toLowerCase();
+
+      filteredVehicles = filteredVehicles.filter((vehicle) => {
+        const vehicleValue = vehicle[filterBy as keyof Vehicle];
+
+        if (vehicleValue === null || vehicleValue === undefined) return false;
+
+        const strValue = vehicleValue.toString().toLowerCase();
+        return strValue.includes(lowerCaseFilterValue);
+      });
     }
 
-    if (sortingField) {
-      const [field, order] = sortingField.startsWith('-')
-        ? [sortingField.slice(1), -1]
-        : [sortingField, 1];
+    if (sortBy) {
+      const [field, order] = sortBy.startsWith('-')
+        ? [sortBy.slice(1), -1]
+        : [sortBy, 1];
 
-      filtredVehicles.sort((a, b) => {
+      filteredVehicles.sort((a, b) => {
         const aValue = a[field as keyof Vehicle];
         const bValue = b[field as keyof Vehicle];
 
@@ -37,6 +43,6 @@ export class VehicleService {
       });
     }
 
-    return filtredVehicles;
+    return filteredVehicles;
   }
 }

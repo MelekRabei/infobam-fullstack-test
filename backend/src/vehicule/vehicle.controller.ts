@@ -10,7 +10,8 @@ export class VehicleController {
   async getVehicles(
     @Query('sortBy') sortBy?: string,
     @Query('filterBy') filterBy?: string,
+    @Query('filterValue') filterValue?: string,
   ): Promise<Vehicle[]> {
-    return this.vehiclesService.getAllVehicules(filterBy, sortBy);
+    return this.vehiclesService.getAllVehicules(filterBy, filterValue, sortBy);
   }
 }

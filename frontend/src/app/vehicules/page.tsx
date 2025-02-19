@@ -8,7 +8,9 @@ import styles from '@/app/vehicules/VehiculesList.module.css';
 
 export default function VehiculesList() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [filter, setFilter] = useState('');
+  const [filterBy, setFilterBy] = useState('');
+  const [previousFilterBy, setPreviousFilterBy] = useState('');
+  const [filterValue, setFilterValue] = useState('');
   const [sort, setSort] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +25,10 @@ export default function VehiculesList() {
 
       try {
         const query = new URLSearchParams();
-        if (filter) query.append('filterBy', filter);
+        if (filterValue && filterBy) {
+          query.append('filterBy', filterBy);
+          query.append('filterValue', filterValue);
+        }
         if (sort) query.append('sortBy', sort);
 
         const res = await fetch(
@@ -40,10 +45,20 @@ export default function VehiculesList() {
     };
 
     fetchVehicles();
-  }, [filter, sort]);
+  }, [filterBy, filterValue, sort]);
+  const handleFilterFieldChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
+    setFilterBy(e.target.value);
 
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setFilter(e.target.value);
+  const handleFilterValueChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setFilterValue(e.target.value);
+
+  useEffect(() => {
+    if (filterBy !== previousFilterBy) {
+      setFilterValue('');
+      setPreviousFilterBy(filterBy);
+    }
+  }, [filterBy, previousFilterBy]);
+
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
     setSort(e.target.value);
 
@@ -59,12 +74,28 @@ export default function VehiculesList() {
   return (
     <div className={styles.tableContainer}>
       <div className={styles.filterSortContainer}>
+        <select
+          value={filterBy}
+          onChange={handleFilterFieldChange}
+          className={styles.filterSortSelect}
+        >
+          <option value="">Filter By</option>
+          <option value="manufacturer">Manufacturer</option>
+          <option value="type">Type</option>
+          <option value="year">Year</option>
+        </select>
         <input
           type="text"
-          placeholder="Filter..."
-          value={filter}
-          onChange={handleFilterChange}
+          placeholder={`Filter by ${filterBy || '...'}`}
+          value={filterValue}
+          onChange={handleFilterValueChange}
           className={styles.filterSortInput}
+          disabled={!filterBy}
+          ref={(input) => {
+            if (input && filterBy && filterValue) {
+              input.focus();
+            }
+          }}
         />
         <select
           value={sort}
@@ -72,19 +103,10 @@ export default function VehiculesList() {
           className={styles.filterSortSelect}
         >
           <option value="">Sort By</option>
-          <option value="manufacturer">Manufacturer</option>
-          <option value="-manufacturer">Manufacturer (Desc)</option>
-          <option value="model">Model</option>
-          <option value="-model">Model (Desc)</option>
           <option value="year">Year</option>
           <option value="-year">Year (Desc)</option>
           <option value="price">Price</option>
           <option value="-price">Price (Desc)</option>
-          <option value="fuelType">Fuel Type</option>
-          <option value="transmission">Transmission</option>
-          <option value="mileage">Mileage</option>
-          <option value="createdAt">Created At</option>
-          <option value="updatedAt">Updated At</option>
         </select>
       </div>
 
@@ -94,6 +116,7 @@ export default function VehiculesList() {
             <th>Manufacturer</th>
             <th>Model</th>
             <th>Year</th>
+            <th>Type</th>
             <th>Price</th>
             <th>Fuel Type</th>
             <th>Transmission</th>
@@ -109,6 +132,7 @@ export default function VehiculesList() {
               <td>{vehicle.manufacturer}</td>
               <td>{vehicle.model}</td>
               <td>{vehicle.year}</td>
+              <td>{vehicle.type}</td>
               <td>{`${vehicle.price.toLocaleString()}£`}</td>
               <td>{vehicle.fuelType}</td>
               <td>{vehicle.transmission}</td>
